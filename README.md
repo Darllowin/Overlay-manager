@@ -20,7 +20,7 @@ Browse, search, add, remove, and sync Gentoo overlays from a fast terminal inter
 - **Auto-elevation** via `doas` or `sudo` at startup
 - **Localization**: English and Russian based on `$LANG`
 
-## Screenshot
+## Scheme
 
 ```
 ┌─ Browse ─── Installed ──── overlay-manager ─────────────────────────────────┐
