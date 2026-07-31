@@ -76,23 +76,6 @@ overlay-manager        # launch TUI (auto-elevates via doas/sudo if needed)
 | `h` | Help |
 | `q` | Quit |
 
-## Configuration
-
-### User-defined overlays
-
-Add custom overlays to `~/.config/overlay-manager/custom.toml`:
-
-```toml
-[[entries]]
-name = "my-overlay"
-url = "https://github.com/user/my-overlay.git"
-description = "Personal Gentoo overlay"
-```
-
-### Cache
-
-Overlay data is cached in `~/.cache/overlay-manager/` with a 24-hour TTL.
-
 ## License
 
 MIT
