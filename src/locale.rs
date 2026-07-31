@@ -1,8 +1,3 @@
-//! Localization: Russian and English.
-//!
-//! The language is determined from LANG/LC_ALL. If it starts with "ru",
-//! Russian is used; otherwise English.
-
 use std::sync::OnceLock;
 
 static STRINGS: OnceLock<&'static Strings> = OnceLock::new();
