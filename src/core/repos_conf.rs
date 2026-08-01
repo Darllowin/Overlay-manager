@@ -189,11 +189,6 @@ pub fn purge_files(name: &str) -> Result<bool> {
     }
 }
 
-pub fn is_installed(name: &str) -> Result<bool> {
-    let repos = read_all()?;
-    Ok(repos.iter().any(|r| r.name == name))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

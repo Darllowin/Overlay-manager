@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use quick_xml::events::Event;
 use quick_xml::Reader;
-use std::fs;
 use std::path::PathBuf;
 
 use super::types::{RemoteOrigin, RemoteRepo, SyncType};
@@ -15,12 +14,6 @@ pub fn fetch_and_parse() -> Result<Vec<RemoteRepo>> {
         .text()
         .context("Failed to read response body")?;
 
-    parse(&xml)
-}
-
-/// Read repositories.xml from cache.
-pub fn parse_from_file(path: &PathBuf) -> Result<Vec<RemoteRepo>> {
-    let xml = fs::read_to_string(path).context("Failed to read cache")?;
     parse(&xml)
 }
 
@@ -151,14 +144,6 @@ fn empty_repo() -> RemoteRepo {
         status: String::new(),
         origin: RemoteOrigin::GentooRegistry,
     }
-}
-
-/// Path to the repositories.xml cache.
-pub fn cache_path() -> PathBuf {
-    dirs::cache_dir()
-        .unwrap_or_else(|| PathBuf::from("/tmp"))
-        .join("overlay-manager")
-        .join("repositories.xml")
 }
 
 /// Path to the JSON cache of the merged list.

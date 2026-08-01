@@ -3,6 +3,7 @@ use std::sync::OnceLock;
 static STRINGS: OnceLock<&'static Strings> = OnceLock::new();
 
 /// All UI strings.
+#[allow(dead_code)]
 pub struct Strings {
     // Tabs
     pub tab_browse: &'static str,

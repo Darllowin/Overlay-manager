@@ -72,16 +72,6 @@ impl SourceSet {
 
         Ok(())
     }
-
-    /// Number of overlays in the list.
-    pub fn len(&self) -> usize {
-        self.repos.len()
-    }
-
-    /// Check if the list is empty.
-    pub fn is_empty(&self) -> bool {
-        self.repos.is_empty()
-    }
 }
 
 /// Deduplication by normalized repo_id.
