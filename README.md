@@ -45,7 +45,15 @@ Browse, search, add, remove, and sync Gentoo overlays from a fast terminal inter
 git clone https://github.com/Darllowin/Overlay-manager.git
 cd overlay-manager
 cargo build --release
-sudo cp target/release/overlay-manager /usr/local/bin/
+cp target/release/overlay-manager /usr/local/bin/
+```
+
+
+### Gentoo 
+```
+eselect repository add darllowin_overlay git https://github.com/Darllowin/darllowin-overlay.git
+emaint sync -r darllowin_overlay
+emerge -av media-gfx/lightningview::darllowin_overlay
 ```
 
 ### Requirements
