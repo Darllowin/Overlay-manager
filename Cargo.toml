@@ -2,7 +2,7 @@
 name = "overlay-manager"
 version = "0.1.0"
 edition = "2024"
-description = "TUI-утилита для управления оверлеями Gentoo"
+description = "TUI overlay manager for Gentoo Linux"
 
 [dependencies]
 # TUI
@@ -12,12 +12,12 @@ crossterm = "0.28"
 # HTTP + API
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 
-# Парсинг
+# Parsing
 quick-xml = "0.37"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
-# Утилиты
+# Utilities
 anyhow = "1"
 dirs = "6"
 toml = "0.8"
