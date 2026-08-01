@@ -54,12 +54,6 @@ impl SourceSet {
             Err(e) => eprintln!("Warning: GitHub search failed: {}", e),
         }
 
-        // 3. User bookmarks
-        match super::custom::load() {
-            Ok(repos) => all.extend(repos),
-            Err(e) => eprintln!("Warning: failed to load custom.toml: {}", e),
-        }
-
         let repos = dedup(all);
         let set = Self { repos };
 
@@ -92,7 +86,7 @@ impl SourceSet {
 
 /// Deduplication by normalized repo_id.
 ///
-/// Priority: official registry > GitHub > custom.
+/// Priority: official registry > GitHub
 /// If two overlays have the same canonical URL,
 /// keep the one that appears earlier in the list (i.e. from the higher priority source).
 fn dedup(repos: Vec<RemoteRepo>) -> Vec<RemoteRepo> {

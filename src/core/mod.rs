@@ -1,4 +1,3 @@
-pub mod custom;
 pub mod github;
 pub mod packages;
 pub mod remote;

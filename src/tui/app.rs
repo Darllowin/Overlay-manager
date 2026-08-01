@@ -551,7 +551,6 @@ impl App {
         };
 
         repos_conf::append(&new_repo)?;
-        crate::core::custom::save(repo).ok();
         self.installed.push(new_repo);
         Ok(())
     }
