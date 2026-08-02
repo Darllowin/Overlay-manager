@@ -1,8 +1,8 @@
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Style},
     widgets::{Block, Paragraph},
-    Frame,
 };
 
 use crate::locale;
@@ -27,12 +27,11 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
         app.sync_output[start..].join("\n")
     };
 
-    let paragraph = Paragraph::new(text)
-        .block(
-            Block::bordered()
-                .title(title)
-                .border_style(Style::default().fg(Color::Yellow)),
-        );
+    let paragraph = Paragraph::new(text).block(
+        Block::bordered()
+            .title(title)
+            .border_style(Style::default().fg(Color::Yellow)),
+    );
 
     frame.render_widget(paragraph, area);
 }

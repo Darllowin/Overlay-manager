@@ -23,15 +23,12 @@ impl SourceSet {
         }
 
         // Check cache freshness
-        if let Ok(meta) = fs::metadata(&path) {
-            if let Ok(modified) = meta.modified() {
-                if let Ok(age) = SystemTime::now().duration_since(modified) {
-                    if age.as_secs() > CACHE_TTL {
+        if let Ok(meta) = fs::metadata(&path)
+            && let Ok(modified) = meta.modified()
+                && let Ok(age) = SystemTime::now().duration_since(modified)
+                    && age.as_secs() > CACHE_TTL {
                         return None;
                     }
-                }
-            }
-        }
 
         let json = fs::read_to_string(&path).ok()?;
         let repos: Vec<RemoteRepo> = serde_json::from_str(&json).ok()?;
@@ -66,8 +63,8 @@ impl SourceSet {
         let dir = json_cache_path().parent().unwrap().to_path_buf();
         fs::create_dir_all(&dir).ok();
 
-        let json = serde_json::to_string_pretty(&self.repos)
-            .context("Failed to serialize cache")?;
+        let json =
+            serde_json::to_string_pretty(&self.repos).context("Failed to serialize cache")?;
         fs::write(json_cache_path(), json).context("Failed to write cache")?;
 
         Ok(())
@@ -148,10 +145,7 @@ mod tests {
 
     #[test]
     fn dedup_sorted_result() {
-        let repos = vec![
-            make_repo("z", "https://a"),
-            make_repo("a", "https://b"),
-        ];
+        let repos = vec![make_repo("z", "https://a"), make_repo("a", "https://b")];
         let result = dedup(repos);
         assert_eq!(result[0].name, "a");
         assert_eq!(result[1].name, "z");

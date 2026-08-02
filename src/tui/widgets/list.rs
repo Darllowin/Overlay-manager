@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, List, ListItem, ListState, Paragraph, Wrap},
-    Frame,
 };
 
 use crate::locale;
@@ -74,10 +74,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
             };
 
             let line = ratatui::text::Line::from(vec![
-                ratatui::text::Span::styled(
-                    format!(" {} {} ", origin_char, name),
-                    style,
-                ),
+                ratatui::text::Span::styled(format!(" {} {} ", origin_char, name), style),
                 status,
             ]);
 
@@ -106,7 +103,12 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 .title(title)
                 .border_style(Style::default().fg(Color::DarkGray)),
         )
-        .highlight_style(Style::default().fg(Color::Black).bg(Color::Cyan).add_modifier(Modifier::BOLD));
+        .highlight_style(
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        );
 
     let mut state = ListState::default()
         .with_selected(Some(app.selected))
@@ -149,10 +151,7 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
             } else {
                 Style::default()
             };
-            ListItem::new(Line::from(Span::styled(
-                format!(" {}", pkg),
-                style,
-            )))
+            ListItem::new(Line::from(Span::styled(format!(" {}", pkg), style)))
         })
         .collect();
 
@@ -160,7 +159,7 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
         && app
             .pkg_list
             .first()
-            .map_or(false, |item| item == s.installed_no);
+            .is_some_and(|item| item == s.installed_no);
 
     let title = if app.search_mode {
         format!(

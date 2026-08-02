@@ -235,9 +235,7 @@ const EN: Strings = Strings {
     removed: |name| format!("{} removed", name),
     removed_with_files: |name| format!("{} removed (with files)", name),
     removed_no_files: |name| format!("{} removed (files not found)", name),
-    removed_config_only: |name, err| {
-        format!("{} removed from config, purge error: {}", name, err)
-    },
+    removed_config_only: |name, err| format!("{} removed from config, purge error: {}", name, err),
     not_found_in_config: "Overlay not found in config",
     cache_loaded: |n| format!("Loaded {} overlays", n),
     cache_error: |e| format!("Load error: {}", e),
@@ -258,9 +256,7 @@ const EN: Strings = Strings {
 
 /// Initialize locale. Call at startup.
 pub fn init() {
-    let lang = std::env::var("LANG")
-        .unwrap_or_default()
-        .to_lowercase();
+    let lang = std::env::var("LANG").unwrap_or_default().to_lowercase();
 
     let s = if lang.starts_with("ru") { &RU } else { &EN };
 

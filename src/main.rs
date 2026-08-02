@@ -103,8 +103,8 @@ fn is_root() -> bool {
 }
 
 fn elevate() -> anyhow::Result<()> {
-    let exe = std::env::current_exe()
-        .unwrap_or_else(|_| std::path::PathBuf::from("overlay-manager"));
+    let exe =
+        std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("overlay-manager"));
 
     for tool in &["doas", "sudo"] {
         if Command::new(tool).arg("--version").output().is_ok() {

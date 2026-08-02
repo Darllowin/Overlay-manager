@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Paragraph},
-    Frame,
 };
 
 use crate::locale;
@@ -14,39 +14,42 @@ pub fn render(frame: &mut Frame, area: Rect) {
     let lines = vec![
         Line::from(Span::styled(
             format!(" {}", s.help_title),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from(key("j / ↓", s.help_down)),
-        Line::from(key("k / ↑", s.help_up)),
-        Line::from(key("g", s.help_top)),
-        Line::from(key("G", s.help_bottom)),
+        key("j / ↓", s.help_down),
+        key("k / ↑", s.help_up),
+        key("g", s.help_top),
+        key("G", s.help_bottom),
         Line::from(""),
-        Line::from(key("Tab", s.help_tab)),
-        Line::from(key("Esc", s.help_esc)),
+        key("Tab", s.help_tab),
+        key("Esc", s.help_esc),
         Line::from(""),
         Line::from(Span::styled(
             format!(" {}", s.help_actions),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from(key("a", s.help_add)),
-        Line::from(key("S", s.help_sync_all)),
-        Line::from(key("d", s.help_rm)),
-        Line::from(key("r", s.help_refresh)),
+        key("a", s.help_add),
+        key("S", s.help_sync_all),
+        key("d", s.help_rm),
+        key("r", s.help_refresh),
         Line::from(""),
-        Line::from(key("/", s.help_search)),
-        Line::from(key("Enter", s.help_enter)),
-        Line::from(key("h", s.help_help)),
-        Line::from(key("q", s.help_quit)),
+        key("/", s.help_search),
+        key("Enter", s.help_enter),
+        key("h", s.help_help),
+        key("q", s.help_quit),
     ];
 
-    let paragraph = Paragraph::new(lines)
-        .block(
-            Block::bordered()
-                .title(format!(" {} ", s.help_title))
-                .border_style(Style::default().fg(Color::DarkGray)),
-        );
+    let paragraph = Paragraph::new(lines).block(
+        Block::bordered()
+            .title(format!(" {} ", s.help_title))
+            .border_style(Style::default().fg(Color::DarkGray)),
+    );
 
     frame.render_widget(paragraph, area);
 }

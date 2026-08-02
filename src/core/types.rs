@@ -119,7 +119,7 @@ pub fn canonical_repo_id(url: &str) -> RepoId {
     };
 
     // Strip .git suffix
-    let s = s.strip_suffix(".git").unwrap_or(&s);
+    let s = s.strip_suffix(".git").unwrap_or(s);
 
     s.trim_end_matches('/').to_lowercase()
 }
@@ -158,7 +158,10 @@ mod tests {
         assert!(matches!(SyncType::from_str("rsync"), SyncType::Rsync));
         assert!(matches!(SyncType::from_str("svn"), SyncType::Svn));
         assert!(matches!(SyncType::from_str("hg"), SyncType::Mercurial));
-        assert!(matches!(SyncType::from_str("mercurial"), SyncType::Mercurial));
+        assert!(matches!(
+            SyncType::from_str("mercurial"),
+            SyncType::Mercurial
+        ));
         assert!(matches!(SyncType::from_str("bzr"), SyncType::Other(_)));
     }
 

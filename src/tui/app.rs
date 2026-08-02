@@ -5,8 +5,7 @@ use std::time::Instant;
 
 use super::actions::Action;
 use crate::core::{
-    packages,
-    repos_conf,
+    packages, repos_conf,
     sources::SourceSet,
     sync::{self, SyncEvent},
     types::{RemoteRepo, Repo},
@@ -205,8 +204,6 @@ impl App {
                     }
                     Action::Close => {
                         self.search_mode = false;
-                        self.search_query.clear();
-                        self.apply_pkg_filter();
                         true
                     }
                     Action::MoveUp => {
@@ -236,22 +233,20 @@ impl App {
                     self.pkg_selected = self.pkg_selected.saturating_sub(1);
                     self.load_pkg_description();
                 }
-                Action::MoveDown => {
-                    if self.pkg_selected + 1 < self.pkg_list.len() {
+                Action::MoveDown
+                    if self.pkg_selected + 1 < self.pkg_list.len() => {
                         self.pkg_selected += 1;
                         self.load_pkg_description();
                     }
-                }
                 Action::MoveTop => {
                     self.pkg_selected = 0;
                     self.load_pkg_description();
                 }
-                Action::MoveBottom => {
-                    if !self.pkg_list.is_empty() {
+                Action::MoveBottom
+                    if !self.pkg_list.is_empty() => {
                         self.pkg_selected = self.pkg_list.len() - 1;
                         self.load_pkg_description();
                     }
-                }
                 Action::SearchStart => {
                     self.search_mode = true;
                     self.search_query.clear();
@@ -297,7 +292,10 @@ impl App {
             Action::TabInstalled => self.switch_to(View::Installed),
 
             Action::SearchStart => {
-                if matches!(self.view, View::Browse | View::Installed | View::Packages(_)) {
+                if matches!(
+                    self.view,
+                    View::Browse | View::Installed | View::Packages(_)
+                ) {
                     self.search_mode = true;
                     self.search_query.clear();
                 }
@@ -413,8 +411,7 @@ impl App {
     fn close(&mut self) {
         if self.search_mode {
             self.search_mode = false;
-            self.search_query.clear();
-            self.apply_filter();
+            // Keep the filter, just exit input mode
         } else if self.view == View::Help {
             self.view = self.previous_view.clone();
         }
@@ -510,20 +507,16 @@ impl App {
             return;
         }
 
-        if !is_installed {
-            if let Some(repo) = &remote_repo {
+        if !is_installed
+            && let Some(repo) = &remote_repo {
                 match self.install_repo(repo) {
-                    Ok(()) => self.show_message(
-                        &(s.sync_added)(&repo_name),
-                        MessageLevel::Info,
-                    ),
+                    Ok(()) => self.show_message(&(s.sync_added)(&repo_name), MessageLevel::Info),
                     Err(e) => {
                         self.show_error(e);
                         return;
                     }
                 }
             }
-        }
 
         self.sync_output.clear();
         self.sync_repo = Some(repo_name.clone());
@@ -600,14 +593,12 @@ impl App {
             Ok(true) => {
                 self.installed.retain(|r| r.name != name);
                 match repos_conf::purge_files(name) {
-                    Ok(true) => self.show_message(
-                        &(s.removed_with_files)(name),
-                        MessageLevel::Success,
-                    ),
-                    Ok(false) => self.show_message(
-                        &(s.removed_no_files)(name),
-                        MessageLevel::Success,
-                    ),
+                    Ok(true) => {
+                        self.show_message(&(s.removed_with_files)(name), MessageLevel::Success)
+                    }
+                    Ok(false) => {
+                        self.show_message(&(s.removed_no_files)(name), MessageLevel::Success)
+                    }
                     Err(e) => self.show_error(e),
                 }
                 self.switch_to(View::Installed);
@@ -764,10 +755,7 @@ impl App {
                         }
                         Err(e) => {
                             self.sync_output.push(format!("{} {}", s.sync_error, e));
-                            self.show_message(
-                                &(s.sync_failed)(&e),
-                                MessageLevel::Error,
-                            );
+                            self.show_message(&(s.sync_failed)(&e), MessageLevel::Error);
                         }
                     }
                     self.view = View::Browse;
@@ -817,11 +805,10 @@ impl App {
     }
 
     fn expire_messages(&mut self) {
-        if let Some(ref msg) = self.message {
-            if Instant::now() >= msg.expires_at {
+        if let Some(ref msg) = self.message
+            && Instant::now() >= msg.expires_at {
                 self.message = None;
             }
-        }
     }
 }
 

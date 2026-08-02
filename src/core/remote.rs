@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
-use quick_xml::events::Event;
 use quick_xml::Reader;
+use quick_xml::events::Event;
 use std::path::PathBuf;
 
 use super::types::{RemoteOrigin, RemoteRepo, SyncType};
@@ -48,12 +48,10 @@ fn parse(xml: &str) -> Result<Vec<RemoteRepo>> {
                             for attr in e.attributes().filter_map(|a| a.ok()) {
                                 match attr.key.as_ref() {
                                     b"quality" => {
-                                        r.quality =
-                                            String::from_utf8_lossy(&attr.value).to_string()
+                                        r.quality = String::from_utf8_lossy(&attr.value).to_string()
                                     }
                                     b"status" => {
-                                        r.status =
-                                            String::from_utf8_lossy(&attr.value).to_string()
+                                        r.status = String::from_utf8_lossy(&attr.value).to_string()
                                     }
                                     _ => {}
                                 }
@@ -80,11 +78,10 @@ fn parse(xml: &str) -> Result<Vec<RemoteRepo>> {
                 match tag.as_str() {
                     "repo" => {
                         depth_repo -= 1;
-                        if depth_repo == 0 {
-                            if let Some(r) = repo.take() {
+                        if depth_repo == 0
+                            && let Some(r) = repo.take() {
                                 repos.push(r);
                             }
-                        }
                     }
                     "owner" => depth_owner = depth_owner.saturating_sub(1),
                     "source" => {

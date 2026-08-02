@@ -1,6 +1,6 @@
 use ratatui::{
-    layout::{Constraint, Layout, Rect},
     Frame,
+    layout::{Constraint, Layout, Rect},
 };
 
 use super::app::App;
@@ -147,10 +147,7 @@ fn render_confirm_popup(frame: &mut Frame, app: &App) {
     let msg = (s.confirm_remove)(&confirm.repo_name);
 
     let lines = vec![
-        Line::from(Span::styled(
-            msg,
-            Style::default().fg(Color::Yellow),
-        )),
+        Line::from(Span::styled(msg, Style::default().fg(Color::Yellow))),
         Line::from(""),
         Line::from(Span::styled(
             s.confirm_yes_no,

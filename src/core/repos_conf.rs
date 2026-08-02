@@ -21,7 +21,7 @@ pub fn read_all() -> Result<Vec<Repo>> {
     let mut repos = Vec::new();
     for entry in fs::read_dir(dir).context("Failed to read repos.conf")? {
         let path = entry?.path();
-        if path.extension().map_or(false, |e| e == "conf") {
+        if path.extension().is_some_and(|e| e == "conf") {
             repos.extend(parse_file(&path)?);
         }
     }
@@ -59,11 +59,10 @@ fn parse_file(path: &Path) -> Result<Vec<Repo>> {
     }
 
     // Last section
-    if let Some(name) = current_section {
-        if let Some(repo) = build_repo(&name, &entries) {
+    if let Some(name) = current_section
+        && let Some(repo) = build_repo(&name, &entries) {
             repos.push(repo);
         }
-    }
 
     Ok(repos)
 }
@@ -139,7 +138,7 @@ fn remove_from(dir: &Path, name: &str) -> Result<bool> {
 
     for entry in fs::read_dir(dir).context("Failed to read repos.conf")? {
         let path = entry?.path();
-        if path.extension().map_or(true, |e| e != "conf") {
+        if path.extension().is_none_or(|e| e != "conf") {
             continue;
         }
 

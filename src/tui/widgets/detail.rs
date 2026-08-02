@@ -1,11 +1,11 @@
-use std::path::Path;
 use ratatui::{
+    Frame,
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Paragraph, Wrap},
-    Frame,
 };
+use std::path::Path;
 
 use crate::locale;
 use crate::tui::app::App;
@@ -36,14 +36,23 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                 ]));
                 lines.push(Line::from(""));
                 if !repo.description.is_empty() {
-                    lines.push(Line::from(Span::styled(s.desc_label, Style::default().fg(Color::Gray))));
+                    lines.push(Line::from(Span::styled(
+                        s.desc_label,
+                        Style::default().fg(Color::Gray),
+                    )));
                     lines.push(Line::from(repo.description.clone()));
                     lines.push(Line::from(""));
                 }
-                lines.push(Line::from(Span::styled(s.source_label, Style::default().fg(Color::Gray))));
+                lines.push(Line::from(Span::styled(
+                    s.source_label,
+                    Style::default().fg(Color::Gray),
+                )));
                 lines.push(Line::from(repo.homepage.clone()));
                 lines.push(Line::from(""));
-                lines.push(Line::from(Span::styled(s.owner_label, Style::default().fg(Color::Gray))));
+                lines.push(Line::from(Span::styled(
+                    s.owner_label,
+                    Style::default().fg(Color::Gray),
+                )));
                 lines.push(Line::from(repo.owner.clone()));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
@@ -53,24 +62,35 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
 
                 add_packages_section(&mut lines, app, &repo.name);
 
-                if installed {
-                    if let Some(inst) = app.installed.iter().find(|r| r.name == repo.name) {
+                if installed
+                    && let Some(inst) = app.installed.iter().find(|r| r.name == repo.name) {
                         add_repo_info(&mut lines, &inst.location);
                     }
-                }
             } else {
                 lines.push(Line::from(s.no_data));
             }
         }
         crate::tui::app::View::Installed => {
             if let Some(repo) = app.selected_installed() {
-                lines.push(Line::from(Span::styled(&repo.name, Style::default().fg(Color::Cyan))));
+                lines.push(Line::from(Span::styled(
+                    &repo.name,
+                    Style::default().fg(Color::Cyan),
+                )));
                 lines.push(Line::from(""));
-                lines.push(Line::from(Span::styled(s.uri_label, Style::default().fg(Color::Gray))));
+                lines.push(Line::from(Span::styled(
+                    s.uri_label,
+                    Style::default().fg(Color::Gray),
+                )));
                 lines.push(Line::from(repo.sync_uri.clone()));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    format!("{} {}  {} {}", s.type_label, repo.sync_type.as_str(), s.status_label, repo.priority.unwrap_or(50)),
+                    format!(
+                        "{} {}  {} {}",
+                        s.type_label,
+                        repo.sync_type.as_str(),
+                        s.status_label,
+                        repo.priority.unwrap_or(50)
+                    ),
                     Style::default().fg(Color::DarkGray),
                 )));
 
@@ -86,7 +106,11 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
     }
 
     let paragraph = Paragraph::new(lines)
-        .block(Block::bordered().title(format!(" {} ", s.detail_title)).border_style(Style::default().fg(Color::DarkGray)))
+        .block(
+            Block::bordered()
+                .title(format!(" {} ", s.detail_title))
+                .border_style(Style::default().fg(Color::DarkGray)),
+        )
         .wrap(Wrap { trim: false });
 
     frame.render_widget(paragraph, area);
@@ -108,7 +132,10 @@ fn add_repo_info(lines: &mut Vec<Line>, location: &Path) {
 fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {
     let s = locale::strings();
     lines.push(Line::from(""));
-    lines.push(Line::from(Span::styled(s.packages_label, Style::default().fg(Color::Gray))));
+    lines.push(Line::from(Span::styled(
+        s.packages_label,
+        Style::default().fg(Color::Gray),
+    )));
 
     if !app.packages_ready {
         lines.push(Line::from(Span::styled(
@@ -126,7 +153,10 @@ fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {
             )));
 
             for pkg in list.iter().take(20) {
-                lines.push(Line::from(Span::styled(format!("  {}", pkg), Style::default())));
+                lines.push(Line::from(Span::styled(
+                    format!("  {}", pkg),
+                    Style::default(),
+                )));
             }
             if list.len() > 20 {
                 lines.push(Line::from(Span::styled(

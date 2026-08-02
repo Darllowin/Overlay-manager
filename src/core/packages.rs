@@ -51,10 +51,7 @@ pub fn scan() -> Result<PackageMap> {
     Ok(map)
 }
 
-/// Scan ebuilds in the overlay directory and return a list of available packages.
-///
-/// Walks `/var/db/repos/<name>/<category>/<package>/` and collects
-/// all unique package names (without versions) in `category/package` format.
+/// Scan ebuilds and return a list of available packages with latest versions.
 pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
     let mut pkgs = Vec::new();
     if !repo_path.is_dir() {
@@ -79,14 +76,25 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
             }
             let pkg_name = pkg_path.file_name().unwrap_or_default().to_string_lossy();
 
-            // Look for at least one .ebuild inside
+            // Collect all versions and keep the latest
+            let mut latest_ver = String::new();
             if let Ok(entries) = fs::read_dir(&pkg_path) {
                 for e in entries.filter_map(|e| e.ok()) {
-                    if e.file_name().to_string_lossy().ends_with(".ebuild") {
-                        pkgs.push(format!("{}/{}", cat_name, pkg_name));
-                        break;
+                    let fname = e.file_name().to_string_lossy().to_string();
+                    if let Some(ver) = fname.strip_suffix(".ebuild") {
+                        // Strip package name prefix: "neovim-0.10.0" → "0.10.0"
+                        if let Some(v) = ver.strip_prefix(&format!("{}-", pkg_name))
+                            && v > latest_ver.as_str() {
+                                latest_ver = v.to_string();
+                            }
                     }
                 }
+            }
+
+            if latest_ver.is_empty() {
+                pkgs.push(format!("{}/{}", cat_name, pkg_name));
+            } else {
+                pkgs.push(format!("{}/{}-{}", cat_name, pkg_name, latest_ver));
             }
         }
     }
@@ -107,26 +115,22 @@ pub fn read_description(repo_path: &Path, pkg: &str) -> String {
 
     // 1. Try metadata.xml
     let meta_path = pkg_dir.join("metadata.xml");
-    if let Ok(xml) = fs::read_to_string(&meta_path) {
-        if let Some(desc) = extract_xml_tag(&xml, "longdescription") {
-            if !desc.is_empty() {
+    if let Ok(xml) = fs::read_to_string(&meta_path)
+        && let Some(desc) = extract_xml_tag(&xml, "longdescription")
+            && !desc.is_empty() {
                 return desc;
             }
-        }
-    }
 
     // 2. Parse DESCRIPTION from first ebuild
     if let Ok(entries) = fs::read_dir(&pkg_dir) {
         for entry in entries.filter_map(|e| e.ok()) {
             let fname = entry.file_name();
             if fname.to_string_lossy().ends_with(".ebuild") {
-                if let Ok(content) = fs::read_to_string(entry.path()) {
-                    if let Some(desc) = extract_ebuild_var(&content, "DESCRIPTION") {
-                        if !desc.is_empty() {
+                if let Ok(content) = fs::read_to_string(entry.path())
+                    && let Some(desc) = extract_ebuild_var(&content, "DESCRIPTION")
+                        && !desc.is_empty() {
                             return desc;
                         }
-                    }
-                }
                 break; // only the first ebuild
             }
         }
@@ -145,13 +149,11 @@ pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
     if let Ok(entries) = fs::read_dir(&pkg_dir) {
         for entry in entries.filter_map(|e| e.ok()) {
             if entry.file_name().to_string_lossy().ends_with(".ebuild") {
-                if let Ok(content) = fs::read_to_string(entry.path()) {
-                    if let Some(flags) = extract_ebuild_var(&content, "IUSE") {
-                        if !flags.is_empty() {
+                if let Ok(content) = fs::read_to_string(entry.path())
+                    && let Some(flags) = extract_ebuild_var(&content, "IUSE")
+                        && !flags.is_empty() {
                             return flags;
                         }
-                    }
-                }
                 break;
             }
         }
