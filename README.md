@@ -24,20 +24,7 @@ Browse, search, add, remove, and sync Gentoo overlays from a fast terminal inter
 
 ## Preview
 
-```
-┌─ Browse ─── Installed ──── overlay-manager ─────────────────────────────────┐
-│ /guru ▌                                                                     │
-│ [R] [✓] guru                     │  guru  ✓ installed                       │
-│ [G]     brave-overlay            │  GURU - Gentoo User Repository           │
-│ [C]     my-local                 │                                          │
-│ ...                              │  Source: github.com/gentoo-mirror/guru   │
-│                                  │  Owner: guru@gentoo.org                  │
-│                                  │  Status: experimental / unofficial       │
-│  Available (455)                 │  Packages: 12 pkg(s)                     │
-├──────────────────────────────────┴──────────────────────────────────────────┤
-│  a:add+sync  S:sync all  d:rm  /:search  r:refresh  h:help  q:quit         │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+![demo](demo-trimmed.gif)
 
 ## Installation
 
