@@ -15,7 +15,7 @@ fn main() -> anyhow::Result<()> {
 fn run_tui() -> anyhow::Result<()> {
     locale::init();
 
-    if !std::env::var("OM_NO_ELEVATE").is_ok() && !is_root() {
+    if !is_root() {
         return elevate();
     }
 
