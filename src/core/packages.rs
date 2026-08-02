@@ -72,24 +72,13 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
             }
             let pkg_name = pkg_path.file_name().unwrap_or_default().to_string_lossy();
 
-            let mut latest_ver = String::new();
             if let Ok(entries) = fs::read_dir(&pkg_path) {
                 for e in entries.filter_map(|e| e.ok()) {
-                    let fname = e.file_name().to_string_lossy().to_string();
-                    if let Some(ver) = fname.strip_suffix(".ebuild") {
-                        if let Some(v) = ver.strip_prefix(&format!("{}-", pkg_name)) {
-                            if v > latest_ver.as_str() {
-                                latest_ver = v.to_string();
-                            }
-                        }
+                    if e.file_name().to_string_lossy().ends_with(".ebuild") {
+                        pkgs.push(format!("{}/{}", cat_name, pkg_name));
+                        break;
                     }
                 }
-            }
-
-            if latest_ver.is_empty() {
-                pkgs.push(format!("{}/{}", cat_name, pkg_name));
-            } else {
-                pkgs.push(format!("{}/{}-{}", cat_name, pkg_name, latest_ver));
             }
         }
     }
@@ -98,18 +87,8 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
     Ok(pkgs)
 }
 
-fn split_pkg_atom(pkg: &str) -> Option<(&str, &str)> {
-    let (cat, name_ver) = pkg.split_once('/')?;
-    let name = name_ver
-        .rsplit_once('-')
-        .filter(|(_, ver)| ver.chars().next().map_or(false, |c| c.is_ascii_digit()))
-        .map(|(name, _)| name)
-        .unwrap_or(name_ver);
-    Some((cat, name))
-}
-
 pub fn read_description(repo_path: &Path, pkg: &str) -> String {
-    let Some((cat, name)) = split_pkg_atom(pkg) else {
+    let Some((cat, name)) = pkg.split_once('/') else {
         return String::new();
     };
     let pkg_dir = repo_path.join(cat).join(name);
@@ -142,7 +121,7 @@ pub fn read_description(repo_path: &Path, pkg: &str) -> String {
 }
 
 pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
-    let Some((cat, name)) = split_pkg_atom(pkg) else {
+    let Some((cat, name)) = pkg.split_once('/') else {
         return String::new();
     };
     let pkg_dir = repo_path.join(cat).join(name);
