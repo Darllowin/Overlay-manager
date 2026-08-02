@@ -31,7 +31,13 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 }
                 crate::tui::app::View::Installed => {
                     let repo = &app.installed[idx];
-                    (repo.name.clone(), true, crate::core::types::RemoteOrigin::Custom)
+                    let origin = app
+                        .available
+                        .iter()
+                        .find(|r| r.name == repo.name)
+                        .map(|r| r.origin)
+                        .unwrap_or(crate::core::types::RemoteOrigin::Custom);
+                    (repo.name.clone(), true, origin)
                 }
                 _ => return ListItem::new(""),
             };
