@@ -13,7 +13,14 @@ pub fn repo_disk_usage(path: &Path) -> String {
         .unwrap_or_else(|| "?".to_string())
 }
 
-/// Get the last sync date from .git/FETCH_HEAD.
+/// Get the time elapsed since last sync (None = never synced).
+pub fn repo_sync_age(path: &Path) -> Option<std::time::Duration> {
+    let fetch_head = path.join(".git").join("FETCH_HEAD");
+    let meta = std::fs::metadata(&fetch_head).ok()?;
+    meta.modified().ok()?.elapsed().ok()
+}
+
+/// Get the last sync date from .git/FETCH_HEAD as a human-readable string.
 pub fn repo_last_sync(path: &Path) -> String {
     let fetch_head = path.join(".git").join("FETCH_HEAD");
     let meta = match std::fs::metadata(&fetch_head) {

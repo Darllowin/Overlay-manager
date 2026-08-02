@@ -47,13 +47,32 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 crate::core::types::RemoteOrigin::Custom => s.origin_custom,
             };
 
-            let status = if installed { "[✓]" } else { "   " };
+            let status = if installed {
+                // Color-code by sync freshness
+                let (marker, color) = match effective_view {
+                    crate::tui::app::View::Browse => {
+                        if let Some(inst) = app.installed.iter().find(|r| r.name == name) {
+                            sync_indicator(&inst.location)
+                        } else {
+                            ("[✓]", Color::Green)
+                        }
+                    }
+                    crate::tui::app::View::Installed => {
+                        sync_indicator(&app.installed[idx].location)
+                    }
+                    _ => ("[✓]", Color::Green),
+                };
+                ratatui::text::Span::styled(format!(" {} ", marker), style.fg(color))
+            } else {
+                ratatui::text::Span::styled("    ", style)
+            };
 
             let line = ratatui::text::Line::from(vec![
                 ratatui::text::Span::styled(
-                    format!(" {} {} {} ", origin_char, status, name),
+                    format!(" {} {} ", origin_char, name),
                     style,
                 ),
+                status,
             ]);
 
             ListItem::new(line)
@@ -87,6 +106,16 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
         .with_selected(Some(app.selected))
         .with_offset(app.scroll_offset);
     frame.render_stateful_widget(list_widget, area, &mut state);
+}
+
+/// Green [✓] = < 1 day, Yellow [~] = < 7 days, Red [!] = older.
+fn sync_indicator(location: &std::path::Path) -> (&'static str, Color) {
+    match crate::core::utils::repo_sync_age(location) {
+        Some(age) if age.as_secs() < 86400 => ("[✓]", Color::Green),
+        Some(age) if age.as_secs() < 604800 => ("[~]", Color::Yellow),
+        Some(_) => ("[!]", Color::Red),
+        None => ("[✓]", Color::Green),
+    }
 }
 
 /// If the current view is Help or Confirm, show list from previous_view.
