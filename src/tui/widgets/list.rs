@@ -206,11 +206,16 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
     frame.render_stateful_widget(list_widget, list_area, &mut state);
 
     // Right panel: package description
-    let desc_text = if app.pkg_description.is_empty() {
+    let mut desc_text = if app.pkg_description.is_empty() {
         crate::locale::strings().no_description.to_string()
     } else {
         app.pkg_description.clone()
     };
+
+    if !app.pkg_use_flags.is_empty() {
+        desc_text.push_str("\n\nUSE: ");
+        desc_text.push_str(&app.pkg_use_flags);
+    }
 
     let desc_title = app
         .pkg_list

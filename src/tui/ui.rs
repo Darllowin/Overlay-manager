@@ -70,7 +70,12 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
     } else if !app.is_root {
         s.no_root.to_string()
     } else {
-        String::new()
+        let age = crate::core::utils::cache_age();
+        if age == "never" {
+            String::new()
+        } else {
+            format!(" cache: {}", age)
+        }
     };
 
     let text = Line::from(vec![

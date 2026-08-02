@@ -76,6 +76,8 @@ pub struct App {
     pub pkg_selected: usize,
     /// Description of the selected package (lazy loaded from metadata.xml).
     pub pkg_description: String,
+    /// USE flags of the selected package.
+    pub pkg_use_flags: String,
     /// Path to repository for loading descriptions.
     pkg_repo_path: PathBuf,
 }
@@ -156,6 +158,7 @@ impl App {
             pkg_list_full: Vec::new(),
             pkg_selected: 0,
             pkg_description: String::new(),
+            pkg_use_flags: String::new(),
             pkg_repo_path: PathBuf::new(),
         }
     }
@@ -721,16 +724,19 @@ impl App {
     fn load_pkg_description(&mut self) {
         if self.pkg_list.is_empty() || self.pkg_repo_path.as_os_str().is_empty() {
             self.pkg_description = String::new();
+            self.pkg_use_flags = String::new();
             return;
         }
         let pkg = match self.pkg_list.get(self.pkg_selected) {
             Some(p) => p,
             None => {
                 self.pkg_description = String::new();
+                self.pkg_use_flags = String::new();
                 return;
             }
         };
         self.pkg_description = crate::core::packages::read_description(&self.pkg_repo_path, pkg);
+        self.pkg_use_flags = crate::core::packages::read_use_flags(&self.pkg_repo_path, pkg);
     }
 
     // ── sync ──
@@ -888,6 +894,7 @@ mod tests {
             pkg_list_full: Vec::new(),
             pkg_selected: 0,
             pkg_description: String::new(),
+            pkg_use_flags: String::new(),
             pkg_repo_path: PathBuf::new(),
         }
     }

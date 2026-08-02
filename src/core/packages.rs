@@ -135,6 +135,31 @@ pub fn read_description(repo_path: &Path, pkg: &str) -> String {
     String::new()
 }
 
+/// Read IUSE flags from the first ebuild file in a package directory.
+pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
+    let Some((cat, name)) = pkg.split_once('/') else {
+        return String::new();
+    };
+    let pkg_dir = repo_path.join(cat).join(name);
+
+    if let Ok(entries) = fs::read_dir(&pkg_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            if entry.file_name().to_string_lossy().ends_with(".ebuild") {
+                if let Ok(content) = fs::read_to_string(entry.path()) {
+                    if let Some(flags) = extract_ebuild_var(&content, "IUSE") {
+                        if !flags.is_empty() {
+                            return flags;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    String::new()
+}
+
 /// Extract a variable value from ebuild: KEY="value".
 fn extract_ebuild_var(content: &str, var: &str) -> Option<String> {
     for line in content.lines() {
