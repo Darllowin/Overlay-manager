@@ -5,3 +5,4 @@ pub mod repos_conf;
 pub mod sources;
 pub mod sync;
 pub mod types;
+pub mod utils;

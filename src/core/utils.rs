@@ -1,0 +1,42 @@
+use std::path::Path;
+use std::process::Command;
+
+/// Get disk usage of an overlay directory (e.g., "111M").
+pub fn repo_disk_usage(path: &Path) -> String {
+    Command::new("du")
+        .args(["-sh", "--"])
+        .arg(path)
+        .output()
+        .ok()
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.split_whitespace().next().unwrap_or("?").to_string())
+        .unwrap_or_else(|| "?".to_string())
+}
+
+/// Get the last sync date from .git/FETCH_HEAD.
+pub fn repo_last_sync(path: &Path) -> String {
+    let fetch_head = path.join(".git").join("FETCH_HEAD");
+    let meta = match std::fs::metadata(&fetch_head) {
+        Ok(m) => m,
+        Err(_) => return "—".to_string(),
+    };
+
+    let Ok(modified) = meta.modified() else {
+        return "—".to_string();
+    };
+
+    let Ok(duration) = modified.elapsed() else {
+        return "—".to_string();
+    };
+
+    let secs = duration.as_secs();
+    if secs < 60 {
+        format!("{}s ago", secs)
+    } else if secs < 3600 {
+        format!("{}m ago", secs / 60)
+    } else if secs < 86400 {
+        format!("{}h ago", secs / 3600)
+    } else {
+        format!("{}d ago", secs / 86400)
+    }
+}
