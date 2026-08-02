@@ -9,18 +9,20 @@ Browse, search, add, remove, and sync Gentoo overlays from a fast terminal inter
 
 ## Features
 
-- **Browse** available overlays from the [official Gentoo registry](https://api.gentoo.org/overlays/repositories.xml), GitHub, and your custom bookmarks
-- **Search** overlays and packages with real-time filtering
+- **Browse** available overlays from the [official Gentoo registry](https://api.gentoo.org/overlays/repositories.xml) and GitHub
+- **Search** overlays and packages with real-time filtering (Esc keeps filter, double-Esc clears)
+- **Detail panel** shows description, owner, disk size, last sync date, and installed packages
+- **Sync freshness** colored indicators: `[✓]` green, `[~]` yellow, `[!]` red
 - **Install/uninstall** overlays with a single keystroke — writes to `/etc/portage/repos.conf/`
 - **Sync** a single overlay (`emaint sync -r`) or all at once (`emaint sync -a`)
-- **View all packages** an overlay provides — scans ebuild files in `/var/db/repos/<name>/`
-- **Package descriptions** parsed from `metadata.xml` and ebuild `DESCRIPTION`
+- **View all packages** an overlay provides with latest versions, descriptions, and USE flags
+- **Cache age** shown in status bar — know when to refresh
 - **Confirmation dialogs** for destructive actions
 - **Animated spinners** during sync and cache refresh
 - **Auto-elevation** via `doas` or `sudo` at startup
 - **Localization**: English and Russian based on `$LANG`
 
-## Scheme
+## Preview
 
 ```
 ┌─ Browse ─── Installed ──── overlay-manager ─────────────────────────────────┐
@@ -49,11 +51,12 @@ cp target/release/overlay-manager /usr/local/bin/
 ```
 
 
-### Gentoo 
-```
+### Gentoo
+
+```bash
 eselect repository add darllowin_overlay git https://github.com/Darllowin/darllowin-overlay.git
 emaint sync -r darllowin_overlay
-emerge -av media-gfx/lightningview::darllowin_overlay
+emerge app-portage/overlay-manager
 ```
 
 ### Requirements
