@@ -939,4 +939,68 @@ mod tests {
         app.apply_filter();
         assert_eq!(app.filtered.len(), 0);
     }
+
+    #[test]
+    fn handle_move_down() {
+        let mut app = test_app();
+        app.handle(Action::MoveDown);
+        assert_eq!(app.selected, 1);
+        app.handle(Action::MoveDown);
+        assert_eq!(app.selected, 2);
+    }
+
+    #[test]
+    fn handle_move_up_clamps() {
+        let mut app = test_app();
+        app.handle(Action::MoveUp);
+        assert_eq!(app.selected, 0);
+    }
+
+    #[test]
+    fn handle_move_down_clamps() {
+        let mut app = test_app();
+        app.selected = 3;
+        app.handle(Action::MoveDown);
+        assert_eq!(app.selected, 3);
+    }
+
+    #[test]
+    fn handle_move_top_bottom() {
+        let mut app = test_app();
+        app.handle(Action::MoveBottom);
+        assert_eq!(app.selected, 3);
+        app.handle(Action::MoveTop);
+        assert_eq!(app.selected, 0);
+    }
+
+    #[test]
+    fn handle_quit_returns_false() {
+        let mut app = test_app();
+        assert!(!app.handle(Action::Quit));
+    }
+
+    #[test]
+    fn handle_non_quit_returns_true() {
+        let mut app = test_app();
+        assert!(app.handle(Action::MoveDown));
+    }
+
+    #[test]
+    fn view_switch_preserves_selected() {
+        let mut app = test_app();
+        app.selected = 2;
+        app.handle(Action::TabInstalled);
+        assert_eq!(app.view, View::Installed);
+        app.handle(Action::TabBrowse);
+        assert_eq!(app.view, View::Browse);
+    }
+
+    #[test]
+    fn help_toggles() {
+        let mut app = test_app();
+        app.handle(Action::ToggleHelp);
+        assert_eq!(app.view, View::Help);
+        app.handle(Action::ToggleHelp);
+        assert_eq!(app.view, View::Browse);
+    }
 }
