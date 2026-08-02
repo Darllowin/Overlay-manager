@@ -3,10 +3,8 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-/// Map: repository_name → list of packages installed from it (atom).
 pub type PackageMap = HashMap<String, Vec<String>>;
 
-/// Scan /var/db/pkg/ and build a repository → packages mapping.
 pub fn scan() -> Result<PackageMap> {
     let pkg_root = Path::new("/var/db/pkg");
     if !pkg_root.exists() {
@@ -51,7 +49,6 @@ pub fn scan() -> Result<PackageMap> {
     Ok(map)
 }
 
-/// Scan ebuilds and return a list of available packages with latest versions.
 pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
     let mut pkgs = Vec::new();
     if !repo_path.is_dir() {
@@ -63,7 +60,6 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
         if !cat_path.is_dir() {
             continue;
         }
-        // Skip metadata/service directories
         let cat_name = cat_path.file_name().unwrap_or_default().to_string_lossy();
         if cat_name == "metadata" || cat_name == "profiles" || cat_name.starts_with('.') {
             continue;
@@ -76,17 +72,16 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
             }
             let pkg_name = pkg_path.file_name().unwrap_or_default().to_string_lossy();
 
-            // Collect all versions and keep the latest
             let mut latest_ver = String::new();
             if let Ok(entries) = fs::read_dir(&pkg_path) {
                 for e in entries.filter_map(|e| e.ok()) {
                     let fname = e.file_name().to_string_lossy().to_string();
                     if let Some(ver) = fname.strip_suffix(".ebuild") {
-                        // Strip package name prefix: "neovim-0.10.0" → "0.10.0"
-                        if let Some(v) = ver.strip_prefix(&format!("{}-", pkg_name))
-                            && v > latest_ver.as_str() {
+                        if let Some(v) = ver.strip_prefix(&format!("{}-", pkg_name)) {
+                            if v > latest_ver.as_str() {
                                 latest_ver = v.to_string();
                             }
+                        }
                     }
                 }
             }
@@ -103,57 +98,41 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
     Ok(pkgs)
 }
 
-/// Read package description — first from metadata.xml, then from ebuild.
-///
-/// Looks for `<longdescription lang="en">` in metadata.xml.
-/// If not found — parses `DESCRIPTION="..."` from the first .ebuild file.
+fn split_pkg_atom(pkg: &str) -> Option<(&str, &str)> {
+    let (cat, name_ver) = pkg.split_once('/')?;
+    let name = name_ver
+        .rsplit_once('-')
+        .filter(|(_, ver)| ver.chars().next().map_or(false, |c| c.is_ascii_digit()))
+        .map(|(name, _)| name)
+        .unwrap_or(name_ver);
+    Some((cat, name))
+}
+
 pub fn read_description(repo_path: &Path, pkg: &str) -> String {
-    let Some((cat, name)) = pkg.split_once('/') else {
+    let Some((cat, name)) = split_pkg_atom(pkg) else {
         return String::new();
     };
     let pkg_dir = repo_path.join(cat).join(name);
 
-    // 1. Try metadata.xml
     let meta_path = pkg_dir.join("metadata.xml");
-    if let Ok(xml) = fs::read_to_string(&meta_path)
-        && let Some(desc) = extract_xml_tag(&xml, "longdescription")
-            && !desc.is_empty() {
+    if let Ok(xml) = fs::read_to_string(&meta_path) {
+        if let Some(desc) = extract_xml_tag(&xml, "longdescription") {
+            if !desc.is_empty() {
                 return desc;
-            }
-
-    // 2. Parse DESCRIPTION from first ebuild
-    if let Ok(entries) = fs::read_dir(&pkg_dir) {
-        for entry in entries.filter_map(|e| e.ok()) {
-            let fname = entry.file_name();
-            if fname.to_string_lossy().ends_with(".ebuild") {
-                if let Ok(content) = fs::read_to_string(entry.path())
-                    && let Some(desc) = extract_ebuild_var(&content, "DESCRIPTION")
-                        && !desc.is_empty() {
-                            return desc;
-                        }
-                break; // only the first ebuild
             }
         }
     }
 
-    String::new()
-}
-
-/// Read IUSE flags from the first ebuild file in a package directory.
-pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
-    let Some((cat, name)) = pkg.split_once('/') else {
-        return String::new();
-    };
-    let pkg_dir = repo_path.join(cat).join(name);
-
     if let Ok(entries) = fs::read_dir(&pkg_dir) {
         for entry in entries.filter_map(|e| e.ok()) {
             if entry.file_name().to_string_lossy().ends_with(".ebuild") {
-                if let Ok(content) = fs::read_to_string(entry.path())
-                    && let Some(flags) = extract_ebuild_var(&content, "IUSE")
-                        && !flags.is_empty() {
-                            return flags;
+                if let Ok(content) = fs::read_to_string(entry.path()) {
+                    if let Some(desc) = extract_ebuild_var(&content, "DESCRIPTION") {
+                        if !desc.is_empty() {
+                            return desc;
                         }
+                    }
+                }
                 break;
             }
         }
@@ -162,7 +141,30 @@ pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
     String::new()
 }
 
-/// Extract a variable value from ebuild: KEY="value".
+pub fn read_use_flags(repo_path: &Path, pkg: &str) -> String {
+    let Some((cat, name)) = split_pkg_atom(pkg) else {
+        return String::new();
+    };
+    let pkg_dir = repo_path.join(cat).join(name);
+
+    if let Ok(entries) = fs::read_dir(&pkg_dir) {
+        for entry in entries.filter_map(|e| e.ok()) {
+            if entry.file_name().to_string_lossy().ends_with(".ebuild") {
+                if let Ok(content) = fs::read_to_string(entry.path()) {
+                    if let Some(flags) = extract_ebuild_var(&content, "IUSE") {
+                        if !flags.is_empty() {
+                            return flags;
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    String::new()
+}
+
 fn extract_ebuild_var(content: &str, var: &str) -> Option<String> {
     for line in content.lines() {
         let line = line.trim();
@@ -176,13 +178,11 @@ fn extract_ebuild_var(content: &str, var: &str) -> Option<String> {
     None
 }
 
-/// Extract XML tag content: <tag>...</tag>.
 fn extract_xml_tag(xml: &str, tag: &str) -> Option<String> {
     let start_tag = format!("<{}", tag);
     let end_tag = format!("</{}>", tag);
 
     let start = xml.find(&start_tag)?;
-    // Look for > after tag attributes
     let content_start = xml[start..].find('>')? + 1;
     let start = start + content_start;
 
