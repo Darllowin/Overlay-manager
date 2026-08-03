@@ -92,7 +92,7 @@ fn parse(xml: &str) -> Result<Vec<RemoteRepo>> {
                 }
             }
             Ok(Event::Text(e)) => {
-                let text = e.unescape().unwrap_or_default();
+                let text = String::from_utf8_lossy(&e).to_string();
                 let r = match &mut repo {
                     Some(r) => r,
                     None => continue,
