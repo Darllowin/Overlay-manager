@@ -10,7 +10,6 @@ use crate::core::{
     sync::{self, SyncEvent},
     types::{RemoteRepo, Repo},
 };
-use crate::locale;
 
 /// Main application state (Model).
 pub struct App {
@@ -390,10 +389,9 @@ impl App {
 
     /// Show an error with human-readable text.
     pub fn show_error(&mut self, error: anyhow::Error) {
-        let s = locale::strings();
         // Permission denied → user-friendly message
         let msg = if format!("{}", error).contains("Permission denied") {
-            s.need_root.to_string()
+            "Root privileges required".to_string()
         } else {
             error.to_string()
         };
@@ -454,12 +452,11 @@ impl App {
             self.pkg_list = pkgs.clone();
             self.pkg_list_full = pkgs;
         } else {
-            let s = locale::strings();
             self.pkg_repo = repo_name;
             let hint = vec![
-                s.installed_no.to_string(),
+                "not installed".to_string(),
                 String::new(),
-                s.not_installed_hint.to_string(),
+                "Press 'a' to install and see packages.".to_string(),
             ];
             self.pkg_list = hint.clone();
             self.pkg_list_full = hint;
@@ -473,8 +470,6 @@ impl App {
     }
 
     fn add_or_sync(&mut self) {
-        let s = locale::strings();
-
         let (repo_name, is_installed, remote_repo) = match &self.view {
             View::Browse => {
                 let idx = match self.filtered.get(self.selected) {
@@ -503,14 +498,14 @@ impl App {
         };
 
         if !self.is_root {
-            self.show_message(s.need_root, MessageLevel::Error);
+            self.show_message("Root privileges required", MessageLevel::Error);
             return;
         }
 
         if !is_installed
             && let Some(repo) = &remote_repo {
                 match self.install_repo(repo) {
-                    Ok(()) => self.show_message(&(s.sync_added)(&repo_name), MessageLevel::Info),
+                    Ok(()) => self.show_message(&format!("{} added, syncing...", repo_name), MessageLevel::Info),
                     Err(e) => {
                         self.show_error(e);
                         return;
@@ -525,9 +520,8 @@ impl App {
     }
 
     fn install_repo(&mut self, repo: &RemoteRepo) -> anyhow::Result<()> {
-        let s = locale::strings();
         if self.installed.iter().any(|r| r.name == repo.name) {
-            anyhow::bail!("{}", (s.already_installed)(&repo.name));
+            anyhow::bail!("{} already installed", repo.name);
         }
 
         let source = repo
@@ -535,7 +529,7 @@ impl App {
             .iter()
             .find(|(t, _)| matches!(t, crate::core::types::SyncType::Git))
             .map(|(_, u)| u.clone())
-            .ok_or_else(|| anyhow::anyhow!("{}", s.no_git_source))?;
+            .ok_or_else(|| anyhow::anyhow!("Overlay has no git source"))?;
 
         let new_repo = Repo {
             name: repo.name.clone(),
@@ -553,7 +547,7 @@ impl App {
 
     fn sync_all(&mut self) {
         if !self.is_root {
-            self.show_message(locale::strings().need_root, MessageLevel::Error);
+            self.show_message("Root privileges required", MessageLevel::Error);
             return;
         }
 
@@ -581,11 +575,10 @@ impl App {
     }
 
     fn do_remove(&mut self, name: &str) {
-        let s = locale::strings();
         self.view = View::Installed;
 
         if !self.is_root {
-            self.show_message(s.need_root, MessageLevel::Error);
+            self.show_message("Root privileges required", MessageLevel::Error);
             return;
         }
 
@@ -594,17 +587,17 @@ impl App {
                 self.installed.retain(|r| r.name != name);
                 match repos_conf::purge_files(name) {
                     Ok(true) => {
-                        self.show_message(&(s.removed_with_files)(name), MessageLevel::Success)
+                        self.show_message(&format!("{} removed (with files)", name), MessageLevel::Success)
                     }
                     Ok(false) => {
-                        self.show_message(&(s.removed_no_files)(name), MessageLevel::Success)
+                        self.show_message(&format!("{} removed (files not found)", name), MessageLevel::Success)
                     }
                     Err(e) => self.show_error(e),
                 }
                 self.switch_to(View::Installed);
             }
             Ok(false) => {
-                self.show_message(s.not_found_in_config, MessageLevel::Info);
+                self.show_message("Overlay not found in config", MessageLevel::Info);
             }
             Err(e) => self.show_error(e),
         }
@@ -628,11 +621,10 @@ impl App {
     }
 
     fn refresh_cache(&mut self) {
-        let s = locale::strings();
         let (tx, rx) = mpsc::channel();
         self.cache_rx = Some(rx);
         self.loading = true;
-        self.show_message(s.cache_updating, MessageLevel::Info);
+        self.show_message("Updating cache...", MessageLevel::Info);
         std::thread::spawn(move || {
             let result = SourceSet::build()
                 .map(|s| s.repos)
@@ -648,21 +640,19 @@ impl App {
         };
         match rx.try_recv() {
             Ok(Ok(repos)) => {
-                let s = locale::strings();
                 self.available = repos;
                 self.loading = false;
                 if matches!(self.view, View::Browse) {
                     self.apply_filter();
                 }
                 self.show_message(
-                    &(s.cache_loaded)(self.available.len()),
+                    &format!("Loaded {} overlays", self.available.len()),
                     MessageLevel::Success,
                 );
             }
             Ok(Err(e)) => {
-                let s = locale::strings();
                 self.loading = false;
-                self.show_message(&(s.cache_error)(&e), MessageLevel::Error);
+                self.show_message(&format!("Load error: {}", e), MessageLevel::Error);
             }
             Err(mpsc::TryRecvError::Empty) => {
                 self.cache_rx = Some(rx); // not ready yet
@@ -739,10 +729,9 @@ impl App {
         };
 
         while let Ok(event) = rx.try_recv() {
-            let s = locale::strings();
             match event {
                 SyncEvent::Started(name) => {
-                    self.sync_output.push((s.sync_start)(&name));
+                    self.sync_output.push(format!("▶ Syncing {}...", name));
                 }
                 SyncEvent::Output(line) => {
                     self.sync_output.push(line);
@@ -750,12 +739,12 @@ impl App {
                 SyncEvent::Finished(result) => {
                     match result {
                         Ok(()) => {
-                            self.sync_output.push(s.sync_done.to_string());
-                            self.show_message(s.sync_finished, MessageLevel::Success);
+                            self.sync_output.push("✓ Done".to_string());
+                            self.show_message("Sync complete", MessageLevel::Success);
                         }
                         Err(e) => {
-                            self.sync_output.push(format!("{} {}", s.sync_error, e));
-                            self.show_message(&(s.sync_failed)(&e), MessageLevel::Error);
+                            self.sync_output.push(format!("✗ {}", e));
+                            self.show_message(&format!("Sync error: {}", e), MessageLevel::Error);
                         }
                     }
                     self.view = View::Browse;

@@ -7,12 +7,10 @@ use ratatui::{
 };
 use std::path::Path;
 
-use crate::locale;
 use crate::tui::app::App;
 
 /// Detail panel — always shows info about the selected item.
 pub fn render(frame: &mut Frame, area: Rect, app: &App) {
-    let s = locale::strings();
     let mut lines: Vec<Line> = Vec::new();
 
     match &app.view {
@@ -21,12 +19,12 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                 let installed = app.installed.iter().any(|r| r.name == repo.name);
                 let status = if installed {
                     Span::styled(
-                        format!(" {} ", s.installed_yes),
+                        " ✓ installed ".to_string(),
                         Style::default().fg(Color::Green),
                     )
                 } else {
                     Span::styled(
-                        format!(" {} ", s.installed_no),
+                        " not installed ".to_string(),
                         Style::default().fg(Color::Yellow),
                     )
                 };
@@ -37,26 +35,26 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                 lines.push(Line::from(""));
                 if !repo.description.is_empty() {
                     lines.push(Line::from(Span::styled(
-                        s.desc_label,
+                        "Description:",
                         Style::default().fg(Color::Gray),
                     )));
                     lines.push(Line::from(repo.description.clone()));
                     lines.push(Line::from(""));
                 }
                 lines.push(Line::from(Span::styled(
-                    s.source_label,
+                    "Source:",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(repo.homepage.clone()));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    s.owner_label,
+                    "Owner:",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(repo.owner.clone()));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    format!("{} {} / {}", s.status_label, repo.status, repo.quality),
+                    format!("Status: {} / {}", repo.status, repo.quality),
                     Style::default().fg(Color::DarkGray),
                 )));
 
@@ -67,7 +65,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                         add_repo_info(&mut lines, &inst.location);
                     }
             } else {
-                lines.push(Line::from(s.no_data));
+                lines.push(Line::from("No data"));
             }
         }
         crate::tui::app::View::Installed => {
@@ -78,17 +76,15 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                 )));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    s.uri_label,
+                    "URI:",
                     Style::default().fg(Color::Gray),
                 )));
                 lines.push(Line::from(repo.sync_uri.clone()));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
                     format!(
-                        "{} {}  {} {}",
-                        s.type_label,
+                        "Type: {}  Status: {}",
                         repo.sync_type.as_str(),
-                        s.status_label,
                         repo.priority.unwrap_or(50)
                     ),
                     Style::default().fg(Color::DarkGray),
@@ -97,7 +93,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
                 add_packages_section(&mut lines, app, &repo.name);
                 add_repo_info(&mut lines, &repo.location);
             } else {
-                lines.push(Line::from(s.no_data));
+                lines.push(Line::from("No data"));
             }
         }
         _ => {
@@ -108,7 +104,7 @@ pub fn render(frame: &mut Frame, area: Rect, app: &App) {
     let paragraph = Paragraph::new(lines)
         .block(
             Block::bordered()
-                .title(format!(" {} ", s.detail_title))
+                .title(" Details ")
                 .border_style(Style::default().fg(Color::DarkGray)),
         )
         .wrap(Wrap { trim: false });
@@ -130,16 +126,15 @@ fn add_repo_info(lines: &mut Vec<Line>, location: &Path) {
 }
 
 fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {
-    let s = locale::strings();
     lines.push(Line::from(""));
     lines.push(Line::from(Span::styled(
-        s.packages_label,
+        "Packages:",
         Style::default().fg(Color::Gray),
     )));
 
     if !app.packages_ready {
         lines.push(Line::from(Span::styled(
-            format!("  {}", s.packages_scanning),
+            "  (scanning...)".to_string(),
             Style::default().fg(Color::DarkGray),
         )));
         return;
@@ -148,7 +143,7 @@ fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {
     match app.packages.get(repo_name) {
         Some(list) if !list.is_empty() => {
             lines.push(Line::from(Span::styled(
-                (s.packages_count)(list.len()),
+                format!("  {} pkg(s)", list.len()),
                 Style::default().fg(Color::DarkGray),
             )));
 
@@ -160,14 +155,14 @@ fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {
             }
             if list.len() > 20 {
                 lines.push(Line::from(Span::styled(
-                    (s.packages_more)(list.len() - 20),
+                    format!("  ... and {} more", list.len() - 20),
                     Style::default().fg(Color::DarkGray),
                 )));
             }
         }
         _ => {
             lines.push(Line::from(Span::styled(
-                format!("  {}", s.packages_none),
+                "  no packages".to_string(),
                 Style::default().fg(Color::DarkGray),
             )));
         }

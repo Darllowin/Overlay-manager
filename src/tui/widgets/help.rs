@@ -6,48 +6,45 @@ use ratatui::{
     widgets::{Block, Paragraph},
 };
 
-use crate::locale;
-
 /// Hotkey help.
 pub fn render(frame: &mut Frame, area: Rect) {
-    let s = locale::strings();
     let lines = vec![
         Line::from(Span::styled(
-            format!(" {}", s.help_title),
+            " Help".to_string(),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        key("j / ↓", s.help_down),
-        key("k / ↑", s.help_up),
-        key("g", s.help_top),
-        key("G", s.help_bottom),
+        key("j / ↓", "down"),
+        key("k / ↑", "up"),
+        key("g", "top of list"),
+        key("G", "bottom of list"),
         Line::from(""),
-        key("Tab", s.help_tab),
-        key("Esc", s.help_esc),
+        key("Tab", "switch Browse / Installed"),
+        key("Esc", "exit search / close help"),
         Line::from(""),
         Line::from(Span::styled(
-            format!(" {}", s.help_actions),
+            " Actions".to_string(),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        key("a", s.help_add),
-        key("S", s.help_sync_all),
-        key("d", s.help_rm),
-        key("r", s.help_refresh),
+        key("a", "add + sync (or just sync if already installed)"),
+        key("S", "sync all overlays (emaint sync -a)"),
+        key("d", "remove overlay (config + files)"),
+        key("r", "refresh cache (repositories.xml + GitHub)"),
         Line::from(""),
-        key("/", s.help_search),
-        key("Enter", s.help_enter),
-        key("h", s.help_help),
-        key("q", s.help_quit),
+        key("/", "search by name"),
+        key("Enter", "show all overlay packages"),
+        key("h", "this help"),
+        key("q", "quit"),
     ];
 
     let paragraph = Paragraph::new(lines).block(
         Block::bordered()
-            .title(format!(" {} ", s.help_title))
+            .title(" Help ")
             .border_style(Style::default().fg(Color::DarkGray)),
     );
 

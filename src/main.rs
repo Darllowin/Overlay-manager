@@ -1,5 +1,4 @@
 mod core;
-mod locale;
 mod tui;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
@@ -13,7 +12,6 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run_tui() -> anyhow::Result<()> {
-    locale::init();
 
     if !is_root() {
         return elevate();
@@ -116,5 +114,5 @@ fn elevate() -> anyhow::Result<()> {
         }
     }
 
-    anyhow::bail!("{}", locale::strings().elevation_hint)
+    anyhow::bail!("Root privileges required. Install doas or sudo and run:\n  doas overlay-manager")
 }

@@ -6,12 +6,10 @@ use ratatui::{
     widgets::{Block, List, ListItem, ListState, Paragraph, Wrap},
 };
 
-use crate::locale;
 use crate::tui::app::App;
 
 /// Overlay list widget with search and highlighting.
 pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
-    let s = locale::strings();
     let visible = area.height.saturating_sub(2) as usize;
     app.clamp_scroll(visible);
 
@@ -48,9 +46,9 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
             }
 
             let origin_char = match origin {
-                crate::core::types::RemoteOrigin::GentooRegistry => s.origin_registry,
-                crate::core::types::RemoteOrigin::Github => s.origin_github,
-                crate::core::types::RemoteOrigin::Custom => s.origin_custom,
+                crate::core::types::RemoteOrigin::GentooRegistry => "",
+                crate::core::types::RemoteOrigin::Github => "",
+                crate::core::types::RemoteOrigin::Custom => "",
             };
 
             let status = if installed {
@@ -83,14 +81,14 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
         .collect();
 
     let title = if app.search_mode {
-        format!(" {}: {}▌", s.search_prefix, app.search_query)
+        format!(" Search: {}▌", app.search_query)
     } else {
         let display_view = effective_list_view(&app.view, &app.previous_view);
         format!(
             " {} ({})",
             match display_view {
-                crate::tui::app::View::Browse => s.title_available,
-                crate::tui::app::View::Installed => s.title_installed,
+                crate::tui::app::View::Browse => "Available",
+                crate::tui::app::View::Installed => "Installed",
                 _ => "",
             },
             list.len()
@@ -139,8 +137,6 @@ fn effective_list_view<'a>(
 
 /// Full-screen overlay package list.
 pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
-    let s = crate::locale::strings();
-
     let items: Vec<ListItem> = app
         .pkg_list
         .iter()
@@ -159,32 +155,30 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
         && app
             .pkg_list
             .first()
-            .is_some_and(|item| item == s.installed_no);
+            .is_some_and(|item| item == "not installed");
 
     let title = if app.search_mode {
         format!(
-            " {}: {} {}▌ ({} {}) ",
-            s.search_prefix,
+            " Search: {} {}▌ ({} {}) ",
             app.pkg_repo,
             app.search_query,
             app.pkg_list.len(),
             if app.pkg_list.is_empty() {
-                s.packages_none
+                "no packages"
             } else {
                 ""
             }
         )
     } else if not_installed {
         // Not installed — just show the name
-        format!(" {}: {} ", s.packages_label, app.pkg_repo)
+        format!(" Packages: {} ", app.pkg_repo)
     } else {
         format!(
-            " {}: {} ({} {}) ",
-            s.packages_label,
+            " Packages: {} ({} {}) ",
             app.pkg_repo,
             app.pkg_list.len(),
             if app.pkg_list.is_empty() {
-                s.packages_none
+                "no packages"
             } else {
                 ""
             }
@@ -212,7 +206,7 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
 
     // Right panel: package description
     let mut desc_text = if app.pkg_description.is_empty() {
-        crate::locale::strings().no_description.to_string()
+        "(no description)".to_string()
     } else {
         app.pkg_description.clone()
     };

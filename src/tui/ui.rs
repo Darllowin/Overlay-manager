@@ -5,8 +5,6 @@ use ratatui::{
 
 use super::app::App;
 use super::widgets::{detail, help, list, log};
-use crate::locale;
-
 /// Render the entire interface.
 pub fn render(frame: &mut Frame, app: &mut App) {
     let area = frame.area();
@@ -62,13 +60,12 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
         }
     };
 
-    let s = locale::strings();
     let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let cache_status = if app.loading {
         let ch = spinner_chars[app.spinner_frame % spinner_chars.len()];
-        format!(" {} {}", ch, s.loading)
+        format!(" {} {}", ch, "⟳ loading...")
     } else if !app.is_root {
-        s.no_root.to_string()
+        "(no root)".to_string()
     } else {
         let age = crate::core::utils::cache_age();
         if age == "never" {
@@ -80,11 +77,11 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
 
     let text = Line::from(vec![
         ratatui::text::Span::styled(
-            format!(" {} ", s.tab_browse),
+            " Browse ".to_string(),
             tab_style(matches!(app.view, super::app::View::Browse)),
         ),
         ratatui::text::Span::styled(
-            format!(" {} ", s.tab_installed),
+            " Installed ".to_string(),
             tab_style(matches!(app.view, super::app::View::Installed)),
         ),
         ratatui::text::Span::styled(
@@ -123,7 +120,7 @@ fn render_footer(frame: &mut Frame, area: Rect, app: &App) {
         frame.render_widget(Paragraph::new(text), area);
     } else {
         let text = Line::from(Span::styled(
-            locale::strings().footer_keys,
+            " a:add+sync  S:sync all  d:rm  /:search  r:refresh  h:help  q:quit ",
             Style::default().fg(Color::DarkGray),
         ));
         frame.render_widget(Paragraph::new(text), area);
@@ -138,19 +135,18 @@ fn render_confirm_popup(frame: &mut Frame, app: &App) {
         widgets::{Block, Clear, Paragraph},
     };
 
-    let s = locale::strings();
     let confirm = match &app.confirm {
         Some(c) => c,
         None => return,
     };
 
-    let msg = (s.confirm_remove)(&confirm.repo_name);
+    let msg = format!("Remove {}?", confirm.repo_name);
 
     let lines = vec![
         Line::from(Span::styled(msg, Style::default().fg(Color::Yellow))),
         Line::from(""),
         Line::from(Span::styled(
-            s.confirm_yes_no,
+            "y — yes, n — no",
             Style::default().fg(Color::DarkGray),
         )),
     ];
