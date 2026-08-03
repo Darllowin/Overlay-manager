@@ -114,7 +114,9 @@ pub struct ConfirmAction {
 
 impl App {
     pub fn new() -> Self {
-        let installed = repos_conf::read_all().unwrap_or_default();
+        let mut installed = repos_conf::read_all().unwrap_or_default();
+        // Hide profile-only overlays (no ebuilds)
+        installed.retain(|r| packages::has_ebuilds(&r.location));
         let available = SourceSet::load_cached()
             .map(|s| s.repos)
             .unwrap_or_default();

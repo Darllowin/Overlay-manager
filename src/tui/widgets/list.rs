@@ -71,10 +71,23 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
                 ratatui::text::Span::styled("    ", style)
             };
 
-            let line = ratatui::text::Line::from(vec![
-                ratatui::text::Span::styled(format!(" {} {} ", origin_char, name), style),
-                status,
-            ]);
+            let mut line_spans = vec![ratatui::text::Span::styled(
+                format!(" {} ", origin_char),
+                style,
+            )];
+
+            if app.search_mode && !app.search_query.is_empty() {
+                highlight_matches(&mut line_spans, &name, &app.search_query, style);
+            } else {
+                line_spans.push(ratatui::text::Span::styled(
+                    format!("{} ", name),
+                    style,
+                ));
+            }
+
+            line_spans.push(status);
+
+            let line = ratatui::text::Line::from(line_spans);
 
             ListItem::new(line)
         })
@@ -112,6 +125,41 @@ pub fn render(frame: &mut Frame, area: Rect, app: &mut App) {
         .with_selected(Some(app.selected))
         .with_offset(app.scroll_offset);
     frame.render_stateful_widget(list_widget, area, &mut state);
+}
+
+fn highlight_matches(
+    spans: &mut Vec<ratatui::text::Span>,
+    text: &str,
+    query: &str,
+    base_style: Style,
+) {
+    let lower_text = text.to_lowercase();
+    let lower_query = query.to_lowercase();
+    let highlight = base_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
+    let mut pos = 0;
+
+    while let Some(start) = lower_text[pos..].find(&lower_query) {
+        let abs_start = pos + start;
+        if abs_start > pos {
+            spans.push(ratatui::text::Span::styled(
+                text[pos..abs_start].to_string(),
+                base_style,
+            ));
+        }
+        spans.push(ratatui::text::Span::styled(
+            text[abs_start..abs_start + query.len()].to_string(),
+            highlight,
+        ));
+        pos = abs_start + query.len();
+    }
+    if pos < text.len() {
+        spans.push(ratatui::text::Span::styled(
+            format!("{} ", &text[pos..]),
+            base_style,
+        ));
+    } else {
+        spans.push(ratatui::text::Span::styled(" ", base_style));
+    }
 }
 
 /// Green [✓] = < 1 day, Yellow [~] = < 7 days, Red [!] = older.
@@ -205,24 +253,35 @@ pub fn render_packages(frame: &mut Frame, area: Rect, app: &mut App) {
     frame.render_stateful_widget(list_widget, list_area, &mut state);
 
     // Right panel: package description
-    let mut desc_text = if app.pkg_description.is_empty() {
-        "(no description)".to_string()
-    } else {
-        app.pkg_description.clone()
-    };
-
-    if !app.pkg_use_flags.is_empty() {
-        desc_text.push_str("\n\nUSE: ");
-        desc_text.push_str(&app.pkg_use_flags);
-    }
-
     let desc_title = app
         .pkg_list
         .get(app.pkg_selected)
         .map(|p| format!(" {} ", p))
         .unwrap_or_else(|| " — ".into());
 
-    let desc = Paragraph::new(desc_text)
+    let no_desc = "(no description)";
+    let desc_str = if app.pkg_description.is_empty() {
+        no_desc
+    } else {
+        &app.pkg_description
+    };
+
+    use ratatui::text::Text;
+    let desc_content = if !app.pkg_use_flags.is_empty() {
+        let lines = vec![
+            Line::from(desc_str),
+            Line::from(""),
+            Line::from(Span::styled(
+                format!("USE: {}", app.pkg_use_flags),
+                Style::default().fg(Color::Cyan),
+            )),
+        ];
+        Text::from(lines)
+    } else {
+        Text::from(desc_str)
+    };
+
+    let desc = Paragraph::new(desc_content)
         .block(
             Block::bordered()
                 .title(desc_title)

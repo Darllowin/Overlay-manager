@@ -119,10 +119,12 @@ fn add_repo_info(lines: &mut Vec<Line>, location: &Path) {
     let sync = utils::repo_last_sync(location);
 
     lines.push(Line::from(""));
-    lines.push(Line::from(Span::styled(
-        format!("Size: {}  Synced: {}", size, sync),
-        Style::default().fg(Color::DarkGray),
-    )));
+    lines.push(Line::from(vec![
+        Span::styled("Size: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(size, Style::default().fg(Color::Cyan)),
+        Span::styled("  Synced: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(sync, Style::default().fg(Color::Magenta)),
+    ]));
 }
 
 fn add_packages_section(lines: &mut Vec<Line>, app: &App, repo_name: &str) {

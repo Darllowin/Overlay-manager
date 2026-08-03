@@ -87,6 +87,21 @@ pub fn scan_overlay(repo_path: &Path) -> Result<Vec<String>> {
     Ok(pkgs)
 }
 
+/// Check if an overlay directory contains any ebuilds (i.e., real packages).
+pub fn has_ebuilds(repo_path: &Path) -> bool {
+    if !repo_path.is_dir() {
+        return false;
+    }
+    // Quick check: if there are no category dirs besides metadata/profiles, it's empty
+    for entry in fs::read_dir(repo_path).into_iter().flatten().flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name != "metadata" && name != "profiles" && !name.starts_with('.') {
+            return true;
+        }
+    }
+    false
+}
+
 pub fn read_description(repo_path: &Path, pkg: &str) -> String {
     let Some((cat, name)) = pkg.split_once('/') else {
         return String::new();
