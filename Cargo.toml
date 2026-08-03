@@ -3,6 +3,11 @@ name = "overlay-manager"
 version = "0.2.0"
 edition = "2024"
 description = "TUI overlay manager for Gentoo Linux"
+repository = "https://github.com/Darllowin/Overlay-manager"
+homepage = "https://github.com/Darllowin/Overlay-manager"
+authors = ["Darllowin"]
+license = "MIT"
+keywords = ["gentoo", "portage", "overlay", "tui"]
 
 [dependencies]
 # TUI
