@@ -20,7 +20,6 @@ Browse, search, add, remove, and sync Gentoo overlays from a fast terminal inter
 - **Confirmation dialogs** for destructive actions
 - **Animated spinners** during sync and cache refresh
 - **Auto-elevation** via `doas` or `sudo` at startup
-- **Localization**: English and Russian based on `$LANG`
 
 ## Preview
 
