@@ -1,6 +1,9 @@
 use std::path::Path;
 use std::process::Command;
 
+/// Braille spinner animation frames.
+pub const SPINNER: [char; 10] = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+
 /// Get disk usage of an overlay directory (e.g., "111M").
 pub fn repo_disk_usage(path: &Path) -> String {
     Command::new("du")

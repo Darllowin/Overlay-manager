@@ -106,11 +106,8 @@ fn elevate() -> anyhow::Result<()> {
 
     for tool in &["doas", "sudo"] {
         if Command::new(tool).arg("--version").output().is_ok() {
-            return Err(Command::new(tool)
-                .arg(&exe)
-                .status()
-                .map(|_| anyhow::anyhow!(""))
-                .unwrap_or_else(|e| anyhow::anyhow!("{}", e)));
+            let status = Command::new(tool).arg(&exe).status()?;
+            std::process::exit(status.code().unwrap_or(1));
         }
     }
 

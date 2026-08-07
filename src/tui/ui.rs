@@ -60,9 +60,8 @@ fn render_header(frame: &mut Frame, area: Rect, app: &App) {
         }
     };
 
-    let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
     let cache_status = if app.loading {
-        let ch = spinner_chars[app.spinner_frame % spinner_chars.len()];
+        let ch = crate::core::utils::SPINNER[app.spinner_frame % crate::core::utils::SPINNER.len()];
         format!(" {} {}", ch, "⟳ loading...")
     } else if !app.is_root {
         "(no root)".to_string()

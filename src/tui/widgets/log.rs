@@ -9,7 +9,7 @@ use crate::tui::app::App;
 
 /// Sync log panel with animated spinner.
 pub fn render(frame: &mut Frame, area: Rect, app: &App) {
-    let spinner = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let spinner = crate::core::utils::SPINNER;
     let ch = spinner[app.spinner_frame % spinner.len()];
 
     let title = match &app.sync_repo {
